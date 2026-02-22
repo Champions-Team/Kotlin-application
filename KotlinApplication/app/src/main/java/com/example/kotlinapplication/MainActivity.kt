@@ -2,6 +2,8 @@ package com.example.kotlinapplication
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
+import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.isVisible
 import com.example.kotlinapplication.ui.theme.KotlinApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +24,10 @@ class MainActivity : ComponentActivity() {
         val person_button = findViewById<Button>(R.id.person_button)
         person_button.setOnClickListener{
             setContentView(R.layout.activity_person_authorization)
+            val button = findViewById<Button>(R.id.btnCreateAccount)
+            button.setOnClickListener {
+                
+            }
         }
-
     }
 }
