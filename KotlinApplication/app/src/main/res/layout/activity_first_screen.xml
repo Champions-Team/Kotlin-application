@@ -5,33 +5,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <include
-        android:id="@+id/act_authorization"
-        layout="@layout/activity_person_authorization"
-        android:visibility="gone"
-        />
     <ImageButton
+        android:id="@+id/btnBack"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/baseline_arrow_back_ios_24"
         android:layout_marginStart="15dp"
         android:layout_marginTop="15dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/baseline_arrow_back_ios_24"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
+        android:id="@+id/tvFirstText"
         android:layout_width="150dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="252dp"
-        android:layout_marginBottom="97dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="250dp"
+        android:gravity="center"
         android:text="@string/hello"
         android:fontFamily="@font/google_sans"
-        android:textSize="15dp"
-        android:gravity="center"
+        android:textSize="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
     <LinearLayout
+        android:id="@+id/ltFirst"
         android:layout_width="200dp"
         android:layout_height="150dp"
         android:orientation="vertical"
@@ -42,14 +40,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
         <Button
-            android:id="@+id/person_button"
+            android:id="@+id/btnPerson"
             android:layout_width="150dp"
             android:layout_height="50dp"
             android:text="@string/person"
             android:layout_gravity="center"
             android:fontFamily="@font/google_sans"
             android:background="@drawable/shape_drawable"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"/>
         <Button
             android:id="@+id/organization_button"
             android:layout_width="150dp"
@@ -60,5 +58,44 @@
             android:fontFamily="@font/google_sans"
             android:background="@drawable/shape_drawable"
             android:textColor="@color/white"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/lt_authorization"
+        android:layout_width="250dp"
+        android:layout_height="235dp"
+        android:layout_marginTop="250dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnBack"
+        android:visibility="gone">
+        <EditText
+            android:layout_width="180dp"
+            android:layout_height="60dp"
+            android:fontFamily="@font/google_sans"
+            android:hint="login"
+            android:textColorHint="#77111111" />
+
+        <EditText
+            android:layout_width="180dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="25dp"
+            android:fontFamily="@font/google_sans"
+            android:hint="password"
+            android:textColorHint="#77111111" />
+
+        <Button
+            android:id="@+id/btnCreate"
+            android:layout_width="150dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="30dp"
+            android:background="@drawable/shape_drawable"
+            android:fontFamily="@font/google_sans"
+            android:text="@string/create_account"
+            android:textColor="@color/white"
+
+            />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
