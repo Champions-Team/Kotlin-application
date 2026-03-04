@@ -1,9 +1,0 @@
-<resources>
-    <string name="app_name">Kotlin Application</string>
-    <string name="hello">Hello, please log in.(press person)</string>
-    <string name="person">Person</string>
-    <string name="organization">Organization</string>
-    <string name="login">login</string>
-    <string name="create_account">Create Account</string>
-    <string name="password">password</string>
-</resources>
