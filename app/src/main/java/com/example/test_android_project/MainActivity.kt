@@ -15,23 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-sealed class Screen(val route: String) {
-    data object Home : Screen("home")
-    data object Detail : Screen("detail")
-}
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(){
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Screen.Home.route) {
-        composable(route = Screen.Home.route) {
-            RegistrationScreen(navController = navController)
-        }
-        composable(route = Screen.Detail.route) {
-            ListOfOrganizationsScreen(navController = navController)
-        }
+    NavHost(
+        navController = navController,
+        startDestination = "listOfOrganizations",
+    ){
+        composable("listOfOrganizations"){ ListOfOrganizationsScreen(navController)}
+        composable("registration"){RegistrationScreen(navController)}
     }
 }
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +41,7 @@ class MainActivity : ComponentActivity() {
                              .padding(padding)
                              .fillMaxSize()
                     ){
-                       AppNavigation()
+                        AppNavigation()
                     }
                 }
             )

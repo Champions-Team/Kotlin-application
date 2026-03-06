@@ -54,6 +54,7 @@ fun RegistrationScreen(
     var validationMessage by remember{mutableStateOf("")}
 
     Column {
+        BackArrowButton(navController)
         AppHeader()
         Spacer(modifier = Modifier.height(30.dp))
         EmailField(
@@ -82,17 +83,13 @@ fun RegistrationScreen(
             text = "Sign up",
             onButtonClick = {
                 validationMessage = if (!isEmailFieldValid || usersEmail.isEmpty()){
-                    "Incorrect email"
-                }else if (usersPassword.isEmpty()){
-                    "Incorrect password"
-                } else if (usersEmail == "smalanin777@gmail.com"){
-                    "Such email already exists"
-                }else{
-                    "Successful registration!"
+                    "Incorrect email or password!"
                 }
-                if (validationMessage == "Successful registration!"){
-                    navController.navigate(Screen.Detail.route)
+                else{
+                    "Correct"
                 }
+                if (validationMessage == "Correct")
+                    navController.navigate("listOfOrganizations")
             }
         )
         Spacer(modifier = Modifier.height(50.dp))
