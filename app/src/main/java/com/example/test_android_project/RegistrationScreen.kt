@@ -40,10 +40,13 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun RegistratoinScreen(){
-
+fun RegistrationScreen(
+    navController: NavController
+){
 
     var usersEmail by remember{mutableStateOf("")}
     var isEmailFieldValid by remember{mutableStateOf(true)}
@@ -86,6 +89,9 @@ fun RegistratoinScreen(){
                     "Such email already exists"
                 }else{
                     "Successful registration!"
+                }
+                if (validationMessage == "Successful registration!"){
+                    navController.navigate(Screen.Detail.route)
                 }
             }
         )
@@ -244,7 +250,7 @@ fun AppHeader(){
 @Composable
 @Preview(showBackground = true)
 private fun RegistrationScreenPreview(){
-    RegistratoinScreen()
+    RegistrationScreen(rememberNavController())
 }
 @Composable
 @Preview(showBackground = true)

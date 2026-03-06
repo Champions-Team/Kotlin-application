@@ -9,9 +9,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+sealed class Screen(val route: String) {
+    data object Home : Screen("home")
+    data object Detail : Screen("detail")
+}
 
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = Screen.Home.route) {
+        composable(route = Screen.Home.route) {
+            RegistrationScreen(navController = navController)
+        }
+        composable(route = Screen.Detail.route) {
+            ListOfOrganizationsScreen(navController = navController)
+        }
+    }
+}
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,11 +45,11 @@ class MainActivity : ComponentActivity() {
                              .padding(padding)
                              .fillMaxSize()
                     ){
-                        RegistratoinScreen()                    }
+                       AppNavigation()
+                    }
                 }
             )
         }
     }
 }
-
 
