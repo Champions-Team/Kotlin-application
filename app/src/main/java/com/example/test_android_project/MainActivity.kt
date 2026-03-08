@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-
+import okhttp3.OkHttpClient
 @Composable
 fun AppNavigation(){
     val navController = rememberNavController()
@@ -24,9 +24,11 @@ fun AppNavigation(){
         startDestination = "listOfOrganizations",
     ){
         composable("listOfOrganizations"){ ListOfOrganizationsScreen(navController)}
-        composable("registration"){RegistrationScreen(navController)}
+        composable("registration"){ RegistrationScreen(navController)}
     }
 }
+
+val client = OkHttpClient()
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

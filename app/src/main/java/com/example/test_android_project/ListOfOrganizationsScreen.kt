@@ -1,6 +1,5 @@
 package com.example.test_android_project
 
-import android.view.inputmethod.InputConnection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,21 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
-import androidx.wear.compose.material3.OpenOnPhoneDialogDefaults.Icon
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -40,13 +32,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.wear.compose.material3.OpenOnPhoneDialogDefaults.Icon
 
 @Composable
 fun ListOfOrganizationsScreen(navController: NavController) {
@@ -56,7 +46,6 @@ fun ListOfOrganizationsScreen(navController: NavController) {
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .padding(10.dp)
             .fillMaxSize()
     ){
         Row (
@@ -77,7 +66,7 @@ fun ListOfOrganizationsScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
         ListOfOrganizations()
         CommonButton(
-            text = "Sign up",
+            text = "go to Sign up",
             onButtonClick = {
                 navController.navigate("registration")
             },
@@ -99,6 +88,10 @@ fun Header(
         Text(
             text = "List of organizations",
             fontSize = 30.sp,
+        )
+        Text(
+            text = "choose organization to help it",
+            color = Color.Gray
         )
         Spacer(Modifier.height(25.dp))
         OutlinedTextField(
@@ -142,21 +135,7 @@ fun Header(
         )
     }
 }
-@Composable
-fun BackArrowButton(navController: NavController){
-    IconButton(
-        onClick = {
-            navController.popBackStack()
-        }
-    ) {
-        Icon(
-            imageVector = Icons.Filled.ArrowBack,
-            contentDescription = "back button on list screen",
-            modifier = Modifier
-                .height(65.dp)
-        )
-    }
-}
+
 @Composable
 fun ListOfOrganizations(){
     LazyColumn (
@@ -178,18 +157,22 @@ fun ListOfOrganizations(){
                     .border(width = 2.dp, color = Color.Black, shape = RoundedCornerShape(20.dp))
                     .background(color = MaterialTheme.colorScheme.background)
             ){
+                Spacer(Modifier.width(15.dp))
                 Text(
                     text = "${index + 1}. ",
                     fontSize = 25.sp,
-                    color = Color.Black,
-                    modifier = Modifier
-                        .padding(15.dp, 0.dp)
+                    color = Color.Black
                 )
-                Spacer(Modifier.width(15.dp))
+                Icon(
+                    imageVector = Icons.Filled.Info,
+                    contentDescription = "organization's information"
+                )
                 Text(
                     text = "some information....",
                     fontSize = 15.sp,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    modifier = Modifier
+                        .padding(5.dp)
                 )
             }
         }

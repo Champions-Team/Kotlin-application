@@ -1,27 +1,15 @@
 package com.example.test_android_project
 
-import android.util.Log
 import android.util.Patterns.EMAIL_ADDRESS
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -35,13 +23,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import okhttp3.Request
+import okhttp3.FormBody
 
 @Composable
 fun RegistrationScreen(
@@ -51,12 +39,24 @@ fun RegistrationScreen(
     var usersEmail by remember{mutableStateOf("")}
     var isEmailFieldValid by remember{mutableStateOf(true)}
     var usersPassword by remember{mutableStateOf("")}
-    var validationMessage by remember{mutableStateOf("")}
+    var validationMessage: String? by remember{mutableStateOf("")}
+    var userName by remember{mutableStateOf("")}
+
 
     Column {
         BackArrowButton(navController)
         AppHeader()
         Spacer(modifier = Modifier.height(30.dp))
+        NameField(
+            username = userName,
+            onUsernameChange = {
+                userName = it
+            },
+            onClearClicked = {
+                userName = ""
+            }
+        )
+        Spacer(modifier = Modifier.height(20.dp))
         EmailField(
             email = usersEmail,
             isEmailValid = isEmailFieldValid,
@@ -82,30 +82,31 @@ fun RegistrationScreen(
         CommonButton(
             text = "Sign up",
             onButtonClick = {
-                validationMessage = if (!isEmailFieldValid || usersEmail.isEmpty()){
+                validationMessage = if (!isEmailFieldValid || usersEmail.isEmpty() || userName.isEmpty()){
                     "Incorrect email or password!"
                 }
                 else{
                     "Correct"
                 }
-                if (validationMessage == "Correct")
+                if (validationMessage == "Correct") {
+
+                    val formBody = FormBody.Builder()
+                        .add("name",userName)
+                        .add("email",usersEmail)
+                        .add("password", usersPassword)
+                        .build()
+
+                    val request = Request.Builder()
+                        .url("url")  // <-- URL
+                        .post(formBody)
+                        .build()
+
+                    val response = client.newCall(request).execute()
+                    validationMessage = response.body?.string()
                     navController.navigate("listOfOrganizations")
+                }
             }
         )
-        Spacer(modifier = Modifier.height(50.dp))
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(70.dp)
-        ) {
-            Text(
-                text = validationMessage,
-                fontSize = 20.sp,
-                color = Color.Black,
-            )
-        }
     }
 }
 @Composable
@@ -155,7 +156,6 @@ fun EmailField(
             .padding(20.dp, 5.dp)
     )
 }
-
 @Composable
 fun PasswordField(
     password: String,
@@ -201,29 +201,51 @@ fun PasswordField(
             .padding(20.dp, 5.dp)
     )
 }
+
 @Composable
-fun CommonButton(
-    text: String,
-    onButtonClick: (String) -> Unit
+fun NameField(
+    username: String,
+    onUsernameChange: (String) -> Unit,
+    onClearClicked: () -> Unit
 ){
-    Button(
-        shape = RoundedCornerShape(17.dp),
-        onClick = {
-            onButtonClick(text)
+    Text(
+        text = "Your name",
+        fontSize = 15.sp,
+        modifier = Modifier
+            .padding(30.dp, 0.dp)
+    )
+    OutlinedTextField(
+        value = username,
+        onValueChange = {
+            onUsernameChange(it)
         },
-        border = BorderStroke(1.dp, Color.Black),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black,
-            contentColor = Color.White
+        shape = RoundedCornerShape(17.dp),
+        placeholder = {
+            Text(
+                text = "Vsevolod_Kuznetsov",
+                color = Color.Gray
+            )
+        },
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color.Black
         ),
+        trailingIcon = {
+            IconButton(
+                onClick = {
+                    onClearClicked()
+                }
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Clear,
+                    contentDescription = "clear icon for name field"
+                )
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(40.dp, 15.dp)
-    ){
-        Text(
-            text = text,
-        )
-    }
+            .padding(20.dp, 5.dp)
+    )
 }
 @Composable
 fun AppHeader(){
@@ -249,11 +271,7 @@ fun AppHeader(){
 private fun RegistrationScreenPreview(){
     RegistrationScreen(rememberNavController())
 }
-@Composable
-@Preview(showBackground = true)
-private fun CommonButtonPreview(){
-    CommonButton("Sign up", {})
-}
+
 @Composable
 @Preview(showBackground = true)
 private fun EmailFieldPreview(){
