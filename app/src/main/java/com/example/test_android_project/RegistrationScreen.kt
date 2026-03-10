@@ -1,17 +1,27 @@
 package com.example.test_android_project
 
 import android.util.Patterns.EMAIL_ADDRESS
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -20,200 +30,195 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.test_android_project.ui.theme.PinkSystemColor
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
-import okhttp3.FormBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import java.io.IOException
 
 @Composable
-fun RegistrationScreen(
-    navController: NavController
-){
+fun RegistrationScreen(navController: NavController) {
+    var usersEmail by remember { mutableStateOf("") }
+    var isEmailFieldValid by remember { mutableStateOf(true) }
+    var isEmailTouched by remember { mutableStateOf(false) }
 
-    var usersEmail by remember{mutableStateOf("")}
-    var isEmailFieldValid by remember{mutableStateOf(true)}
-    var usersPassword by remember{mutableStateOf("")}
-    var validationMessage: String? by remember{mutableStateOf("")}
-    var userName by remember{mutableStateOf("")}
+    var usersPassword by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf(false) }
 
+    var userName by remember { mutableStateOf("") }
+    var nameError by remember { mutableStateOf(false) }
 
-    Column {
-        BackArrowButton(navController)
-        AppHeader()
-        Spacer(modifier = Modifier.height(30.dp))
-        NameField(
-            username = userName,
-            onUsernameChange = {
-                userName = it
-            },
-            onClearClicked = {
-                userName = ""
-            }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val view = LocalView.current
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.background_image),
+            contentDescription = null,
+            modifier = Modifier.offset(y = -170.dp, x = 0.dp)
         )
-        Spacer(modifier = Modifier.height(20.dp))
-        EmailField(
-            email = usersEmail,
-            isEmailValid = isEmailFieldValid,
-            onEmailChange = {
-                usersEmail = it
-                isEmailFieldValid = EMAIL_ADDRESS.matcher(it).matches()
-            },
-            onClearClicked = {
-                usersEmail = ""
-                isEmailFieldValid = true
-            }
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        PasswordField(
-            password = usersPassword,
-            onPasswordChange = {
-                usersPassword = it
-            },
-            onClearClicked = {
-                usersPassword = ""
-            }
-        )
-        CommonButton(
-            text = "Sign up",
-            onButtonClick = {
-                validationMessage = if (!isEmailFieldValid || usersEmail.isEmpty() || userName.isEmpty()){
-                    "Incorrect email or password!"
+        Column(modifier = Modifier.padding(25.dp, 240.dp, 25.dp, 0.dp)) {
+            Text(
+                text = "Регистрация",
+                fontFamily = FontFamily(Font(R.font.system_font)),
+                fontSize = 38.sp
+            )
+            Spacer(Modifier.height(20.dp))
+            NameField(
+                username = userName,
+                isErrorName = nameError,
+                onUsernameChange = { userName = it },
+                onClearClicked = {
+                    userName = ""
+                    nameError = false
                 }
-                else{
-                    "Correct"
+            )
+            Spacer(Modifier.height(12.dp))
+            EmailField(
+                email = usersEmail,
+                isEmailValid = isEmailFieldValid,
+                isTouched = isEmailTouched,
+                onEmailChange = {
+                    usersEmail = it
+                    isEmailTouched = true
+                    isEmailFieldValid = EMAIL_ADDRESS.matcher(it).matches() && it.isNotEmpty()
+                },
+                onClearClicked = {
+                    usersEmail = ""
+                    isEmailTouched = false
+                    isEmailFieldValid = true
                 }
-                if (validationMessage == "Correct") {
+            )
+            Spacer(Modifier.height(12.dp))
+            PasswordField(
+                password = usersPassword,
+                isErrorPassword = passwordError,
+                onPasswordChange = { usersPassword = it },
+                onClearClicked = {
+                    usersPassword = ""
+                    passwordError = false
+                }
+            )
+            Spacer(Modifier.height(62.dp))
+            CommonButton(
+                text = "Создать аккаунт",
+                enabled = !isLoading,
+                onButtonClick = {
+                    isEmailTouched = true
+                    passwordError = false
+                    nameError = false
 
-                    val formBody = FormBody.Builder()
-                        .add("name",userName)
-                        .add("email",usersEmail)
-                        .add("password", usersPassword)
-                        .build()
+                    var isValid = true
 
-                    val request = Request.Builder()
-                        .url("url")  // <-- URL
-                        .post(formBody)
-                        .build()
+                    if (usersEmail.isEmpty() || !EMAIL_ADDRESS.matcher(usersEmail).matches()) {
+                        isEmailFieldValid = false
+                        isValid = false
+                    }
+                    if (usersPassword.isEmpty()) {
+                        passwordError = true
+                        isValid = false
+                    }
+                    if (userName.isEmpty()) {
+                        nameError = true
+                        isValid = false
+                    }
 
-                    val response = client.newCall(request).execute()
-                    validationMessage = response.body?.string()
-                    navController.navigate("listOfOrganizations")
+                    if (isValid) {
+                        isLoading = true
+                        val json = """
+                            {
+                                "name": "$userName",
+                                "email": "$usersEmail",
+                                "password": "$usersPassword"
+                            }
+                        """.trimIndent()
+
+                        val mediaType = "application/json; charset=utf-8".toMediaType()
+                        val body = json.toRequestBody(mediaType)
+
+                        val request = Request.Builder()
+                            .url("")
+                            .post(body)
+                            .addHeader("Content-Type", "application/json")
+                            .build()
+
+                        client.newCall(request).enqueue(object : Callback {
+                            override fun onFailure(call: Call, e: IOException) {
+                                view.post {
+                                    isLoading = false
+                                    Toast.makeText(
+                                        context,
+                                        "Ошибка сети: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+
+                            override fun onResponse(call: Call, response: Response) {
+                                view.post {
+                                    isLoading = false
+                                    if (response.isSuccessful) {
+                                        navController.navigate("listOfOrganizations")
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Ошибка сервера: ${response.code}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    response.close()
+                                }
+                            }
+                        })
+                    }
+                }
+            )
+            Spacer(Modifier.height(5.dp))
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ToOtherScreenButton(
+                    defaultText = "Уже есть аккаунт?",
+                    pointedText = "Войдите в него!"
+                ) {
+                    navController.navigate("authorization")
                 }
             }
-        )
+        }
     }
 }
 @Composable
-fun EmailField(
-    email: String,
-    isEmailValid: Boolean,
-    onEmailChange: (String) -> Unit,
-    onClearClicked: () -> Unit
-){
-    Text(
-        text = "Email",
-        fontSize = 15.sp,
-        modifier = Modifier
-            .padding(30.dp, 0.dp)
-    )
-    OutlinedTextField(
-        value = email,
-        onValueChange = {
-            onEmailChange(it)
-        },
-        shape = RoundedCornerShape(17.dp),
-        placeholder = {
-            Text(
-                text ="example@gmail.com",
-                color = Color.Gray
-            )
-        },
-        singleLine = true,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Black
-        ),
-        trailingIcon = {
-            IconButton(
-                onClick = {
-                    onClearClicked()
-                }
-            ){
-                Icon(
-                    imageVector = Icons.Filled.Clear,
-                    contentDescription = "clear button for email field"
-                )
-            }
-        },
-        isError = !isEmailValid,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp, 5.dp)
-    )
-}
-@Composable
-fun PasswordField(
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    onClearClicked: () -> Unit
-){
-    Text(
-        text = "Password",
-        fontSize = 15.sp,
-        modifier = Modifier
-            .padding(30.dp, 0.dp)
-    )
-    OutlinedTextField(
-        value = password,
-        onValueChange = {
-            onPasswordChange(it)
-        },
-        shape = RoundedCornerShape(17.dp),
-        placeholder = {
-            Text(
-                text = "example_password",
-                color = Color.Gray
-            )
-        },
-        singleLine = true,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Black
-        ),
-        trailingIcon = {
-            IconButton(
-                onClick = {
-                    onClearClicked()
-                }
-            ){
-                Icon(
-                    imageVector = Icons.Filled.Clear,
-                    contentDescription = "clear icon for password field"
-                )
-            }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp, 5.dp)
-    )
-}
-
-@Composable
 fun NameField(
     username: String,
+    isErrorName: Boolean,
     onUsernameChange: (String) -> Unit,
     onClearClicked: () -> Unit
 ){
     Text(
-        text = "Your name",
-        fontSize = 15.sp,
-        modifier = Modifier
-            .padding(30.dp, 0.dp)
+        text = "Ваше имя",
+        fontFamily = FontFamily(Font(R.font.system_font)),
+        fontSize = 15.sp
     )
+    Spacer(Modifier.height(12.dp))
     OutlinedTextField(
         value = username,
         onValueChange = {
@@ -223,13 +228,23 @@ fun NameField(
         placeholder = {
             Text(
                 text = "Vsevolod_Kuznetsov",
-                color = Color.Gray
+                fontFamily = FontFamily(Font(R.font.system_font)),
+                fontSize = 12.sp,
+                color = if( !isErrorName ) {
+                    Color.Gray
+                } else{
+                    Color.Red
+                }
             )
         },
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.Black
+            cursorColor = PinkSystemColor,
+            focusedBorderColor = PinkSystemColor,
+            errorBorderColor = Color.Red,
+            errorTrailingIconColor = Color.Red
         ),
+        textStyle = TextStyle(fontSize = 12.sp),
         trailingIcon = {
             IconButton(
                 onClick = {
@@ -242,27 +257,152 @@ fun NameField(
                 )
             }
         },
+        isError = isErrorName,
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp, 5.dp)
+            .width(343.dp)
+            .height(55.dp)
     )
 }
 @Composable
-fun AppHeader(){
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+fun EmailField(
+    email: String,
+    isEmailValid: Boolean,
+    isTouched: Boolean,
+    onEmailChange: (String) -> Unit,
+    onClearClicked: () -> Unit
+){
+    Text(
+        text = "Email",
+        fontFamily = FontFamily(Font(R.font.system_font)),
+        fontSize = 15.sp
+    )
+    Spacer(Modifier.height(12.dp))
+    OutlinedTextField(
+        value = email,
+        onValueChange = {
+            onEmailChange(it)
+        },
+        shape = RoundedCornerShape(17.dp),
+        placeholder = {
+            Text(
+                text ="example@gmail.com",
+                fontFamily = FontFamily(Font(R.font.system_font)),
+                fontSize = 12.sp,
+                color = if( isEmailValid ) {
+                    Color.Gray
+                } else{
+                    Color.Red
+                }
+            )
+        },
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            cursorColor = PinkSystemColor,
+            focusedBorderColor = PinkSystemColor,
+            errorBorderColor = Color.Red,
+            errorTrailingIconColor = Color.Red
+        ),
+        textStyle = TextStyle(fontSize = 12.sp),
+        trailingIcon = {
+            IconButton(
+                onClick = {
+                    onClearClicked()
+                }
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Clear,
+                    contentDescription = "clear button for email field"
+                )
+            }
+        },
+        isError = !isEmailValid && isTouched,
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 60.dp)
+            .width(343.dp)
+            .height(55.dp)
+    )
+}
+@Composable
+fun PasswordField(
+    password: String,
+    isErrorPassword: Boolean,
+    onPasswordChange: (String) -> Unit,
+    onClearClicked: () -> Unit
+){
+    Text(
+        text = "Пароль",
+        fontFamily = FontFamily(Font(R.font.system_font)),
+        fontSize = 15.sp
+    )
+    Spacer(Modifier.height(12.dp))
+    OutlinedTextField(
+        value = password,
+        onValueChange = {
+            onPasswordChange(it)
+        },
+        shape = RoundedCornerShape(17.dp),
+        placeholder = {
+            Text(
+                text = "example_password",
+                fontFamily = FontFamily(Font(R.font.system_font)),
+                fontSize = 12.sp,
+                color = if( !isErrorPassword ) {
+                    Color.Gray
+                } else{
+                    Color.Red
+                }
+            )
+        },
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            cursorColor = PinkSystemColor,
+            focusedBorderColor = PinkSystemColor,
+            errorBorderColor = Color.Red,
+            errorTrailingIconColor = Color.Red
+        ),
+        textStyle = TextStyle(fontSize = 12.sp),
+        trailingIcon = {
+            IconButton(
+                onClick = {
+                    onClearClicked()
+                }
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Clear,
+                    contentDescription = "clear icon for name field"
+                )
+            }
+        },
+        isError = isErrorPassword,
+        modifier = Modifier
+            .width(343.dp)
+            .height(55.dp)
+    )
+}
+@Composable
+fun ToOtherScreenButton(
+    defaultText: String,
+    pointedText: String,
+    onClicked: () -> Unit
+){
+    Button(
+        onClick = onClicked,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+
     ){
         Text(
-            text = "Registration",
-            fontSize = 30.sp,
+            text = defaultText,
+            fontSize = 14.sp,
+            fontFamily = FontFamily(Font(R.font.system_font)),
+            color = Color.Gray
+
         )
         Text(
-            text = "Enter your email & password",
-            color = Color.Gray
+            text = " $pointedText",
+            fontSize = 14.sp,
+            fontFamily = FontFamily(Font(R.font.system_font)),
+            color = PinkSystemColor
         )
     }
 }
@@ -270,20 +410,4 @@ fun AppHeader(){
 @Preview(showBackground = true)
 private fun RegistrationScreenPreview(){
     RegistrationScreen(rememberNavController())
-}
-
-@Composable
-@Preview(showBackground = true)
-private fun EmailFieldPreview(){
-    EmailField("", true, {}, {})
-}
-@Composable
-@Preview(showBackground = true)
-private fun PasswordFieldsPreview(){
-    PasswordField("", {}, {})
-}
-@Composable
-@Preview(showBackground = true)
-private fun AppHeaderPreview() {
-    AppHeader()
 }

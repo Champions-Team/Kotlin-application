@@ -1,50 +1,26 @@
 package com.example.test_android_project
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.example.test_android_project.ui.theme.PinkSystemColor
 
-@Composable
-fun BackArrowButton(navController: NavController){
-    IconButton(
-        onClick = {
-            navController.popBackStack()
-        },
-        modifier = Modifier
-            .padding(10.dp)
-            .clip(RoundedCornerShape(50.dp))
-            .border(width = 1.dp, color = Color.LightGray, shape = RoundedCornerShape(50.dp))
-    ) {
-        Icon(
-            imageVector = Icons.Filled.ArrowBack,
-            contentDescription = "back button on list screen",
-            modifier = Modifier
-                .height(65.dp)
-        )
-    }
-}
 
 @Composable
 fun CommonButton(
     text: String,
+    enabled: Boolean = true,
     onButtonClick: (String) -> Unit
 ){
     Button(
@@ -52,9 +28,10 @@ fun CommonButton(
         onClick = {
             onButtonClick(text)
         },
-        border = BorderStroke(1.dp, Color.Black),
+        enabled = enabled,
+        border = BorderStroke(1.dp, PinkSystemColor),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black,
+            containerColor = PinkSystemColor,
             contentColor = Color.White
         ),
         modifier = Modifier
@@ -63,16 +40,12 @@ fun CommonButton(
     ){
         Text(
             text = text,
+            fontFamily = FontFamily(Font(R.font.system_font)),
         )
     }
 }
 @Composable
 @Preview(showBackground = true)
-private fun BackArrowButtonPreview(){
-    BackArrowButton(rememberNavController())
-}
-@Composable
-@Preview(showBackground = true)
 private fun CommonButtonPreview(){
-    CommonButton("click", {})
+    CommonButton("click", true, {""})
 }
