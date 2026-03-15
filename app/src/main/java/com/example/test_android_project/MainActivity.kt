@@ -5,11 +5,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -21,11 +26,18 @@ fun AppNavigation(){
     NavHost(
         navController = navController,
         startDestination = "welcome",
+        enterTransition = { fadeIn() },
+        exitTransition = { fadeOut() },
+        popEnterTransition = { fadeIn() },
+        popExitTransition = { fadeOut() },
+        modifier = Modifier
+            .fillMaxSize()
     ){
         composable("listOfOrganizations"){ ListOfOrganizationsScreen(navController)}
         composable("registration"){ RegistrationScreen(navController)}
         composable("authorization"){ AuthorizationScreen(navController)}
         composable("welcome"){ WelcomeScreen(navController)}
+        composable("main"){MainScreen(navController)}
     }
 }
 

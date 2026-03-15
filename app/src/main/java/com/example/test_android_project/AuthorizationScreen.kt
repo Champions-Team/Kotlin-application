@@ -1,6 +1,7 @@
 package com.example.test_android_project
 
 import android.util.Patterns.EMAIL_ADDRESS
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -29,6 +32,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.test_android_project.ui.theme.PinkSystemColor
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import java.io.IOException
 
 @Composable
 fun AuthorizationScreen(
@@ -41,11 +51,16 @@ fun AuthorizationScreen(
     var usersPassword by remember{mutableStateOf("")}
     var passwordError by remember{mutableStateOf(false)}
 
+    var isLoading by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val view = LocalView.current
+
     Box (
         modifier = Modifier.fillMaxSize()
     ){
         Image(
-            painter = painterResource(id = R.drawable.background_image),
+            painter = painterResource(R.drawable.background_image),
             contentDescription = null,
             modifier = Modifier.offset(y = -100.dp, x = 0.dp)
         )
@@ -106,7 +121,51 @@ fun AuthorizationScreen(
                     }
 
                     if (isValid) {
-                        navController.navigate("listOfOrganizations")
+                        isLoading = true
+                        val json = """
+                            {
+                                "email": "$usersEmail",
+                                "password": "$usersPassword"
+                            }
+                        """.trimIndent()
+
+                        val mediaType = "application/json; charset=utf-8".toMediaType()
+                        val body = json.toRequestBody(mediaType)
+
+                        val request = Request.Builder()
+                            .url("https://postman-echo.com/post")
+                            .post(body)
+                            .addHeader("Content-Type", "application/json")
+                            .build()
+
+                        client.newCall(request).enqueue(object : Callback {
+                            override fun onFailure(call: Call, e: IOException) {
+                                view.post {
+                                    isLoading = false
+                                    Toast.makeText(
+                                        context,
+                                        "Ошибка сети: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+
+                            override fun onResponse(call: Call, response: Response) {
+                                view.post {
+                                    isLoading = false
+                                    if (response.isSuccessful) {
+                                        navController.navigate("listOfOrganizations")
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Ошибка сервера: ${response.code}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    response.close()
+                                }
+                            }
+                        })
                     }
                 }
             )
@@ -115,7 +174,7 @@ fun AuthorizationScreen(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ){
-                ToOtherScreenButton(
+                CommonTextButton(
                     defaultText = "Еще нет аккаунта?",
                     pointedText = "Создайте его!"
                 ) {

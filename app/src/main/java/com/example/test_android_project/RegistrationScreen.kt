@@ -71,7 +71,7 @@ fun RegistrationScreen(navController: NavController) {
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.background_image),
+            painter = painterResource(R.drawable.background_image),
             contentDescription = null,
             modifier = Modifier.offset(y = -170.dp, x = 0.dp)
         )
@@ -155,7 +155,7 @@ fun RegistrationScreen(navController: NavController) {
                         val body = json.toRequestBody(mediaType)
 
                         val request = Request.Builder()
-                            .url("")
+                            .url("https://postman-echo.com/post")
                             .post(body)
                             .addHeader("Content-Type", "application/json")
                             .build()
@@ -196,7 +196,7 @@ fun RegistrationScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                ToOtherScreenButton(
+                CommonTextButton(
                     defaultText = "Уже есть аккаунт?",
                     pointedText = "Войдите в него!"
                 ) {
@@ -378,34 +378,7 @@ fun PasswordField(
             .height(55.dp)
     )
 }
-@Composable
-fun ToOtherScreenButton(
-    defaultText: String,
-    pointedText: String,
-    onClicked: () -> Unit
-){
-    Button(
-        onClick = onClicked,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
 
-    ){
-        Text(
-            text = defaultText,
-            fontSize = 14.sp,
-            fontFamily = FontFamily(Font(R.font.system_font)),
-            color = Color.Gray
-
-        )
-        Text(
-            text = " $pointedText",
-            fontSize = 14.sp,
-            fontFamily = FontFamily(Font(R.font.system_font)),
-            color = PinkSystemColor
-        )
-    }
-}
 @Composable
 @Preview(showBackground = true)
 private fun RegistrationScreenPreview(){

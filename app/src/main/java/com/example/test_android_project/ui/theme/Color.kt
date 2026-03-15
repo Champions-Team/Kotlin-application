@@ -3,7 +3,8 @@ package com.example.test_android_project.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
+
+val GraySystemColor = Color(0xFFE8E8E8)
 val Pink80 = Color(0xFFEFB8C8)
 
 val PinkSystemColor = Color(0xFFFF8383)

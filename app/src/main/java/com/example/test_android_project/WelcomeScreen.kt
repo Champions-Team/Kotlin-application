@@ -32,7 +32,7 @@ import androidx.navigation.compose.rememberNavController
 fun WelcomeScreen(navController: NavController){
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.background_image),
+            painter = painterResource(R.drawable.background_image),
             contentDescription = null,
         )
     }
