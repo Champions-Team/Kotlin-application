@@ -32,6 +32,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.test_android_project.ui.theme.PinkSystemColor
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
@@ -39,10 +43,15 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
-
+data class TokenResponse(
+    val access_token: String,
+    val refresh_token: String,
+    val token_type: String
+)
 @Composable
 fun AuthorizationScreen(
-    navController: NavController
+    navController: NavController,
+    dataStoreManager: DataStoreManager
 ){
     var usersEmail by remember{mutableStateOf("")}
     var isEmailFieldValid by remember{mutableStateOf(true)}
@@ -55,6 +64,8 @@ fun AuthorizationScreen(
 
     val context = LocalContext.current
     val view = LocalView.current
+    val gson = Gson()
+    val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     Box (
         modifier = Modifier.fillMaxSize()
@@ -149,18 +160,39 @@ fun AuthorizationScreen(
                                     ).show()
                                 }
                             }
-
                             override fun onResponse(call: Call, response: Response) {
                                 view.post {
                                     isLoading = false
-                                    if (response.isSuccessful) {
-                                        navController.navigate("listOfOrganizations")
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            "Ошибка сервера: ${response.code}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+
+                                    val responseBody = response.body?.string()
+
+                                    when (response.code) {
+                                        in 200..299 -> {
+                                            if (responseBody != null) {
+                                                try {
+                                                    val tokenResponse = gson.fromJson(responseBody, TokenResponse::class.java)
+                                                    coroutineScope.launch {
+                                                        dataStoreManager.saveTokens(
+                                                            accessToken = tokenResponse.access_token,
+                                                            refreshToken = tokenResponse.refresh_token,
+                                                            tokenType = tokenResponse.token_type,
+                                                            userEmail = usersEmail
+                                                        )
+                                                    }
+                                                    Toast.makeText(context, "Авторизация успешна!", Toast.LENGTH_SHORT).show()
+                                                    navController.navigate("listOfOrganizations")
+                                                } catch (e: Exception) {
+                                                    Toast.makeText(context, "Ошибка обработки ответа", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+                                        401 -> {
+                                            Toast.makeText(context, "Неверный email или пароль", Toast.LENGTH_LONG).show()
+                                            passwordError = true
+                                        }
+                                        else -> {
+                                            Toast.makeText(context, "Ошибка сервера: ${response.code}", Toast.LENGTH_LONG).show()
+                                        }
                                     }
                                     response.close()
                                 }
@@ -188,6 +220,6 @@ fun AuthorizationScreen(
 @Preview(showBackground = true)
 @Composable
 private fun AuthorizationScreenPreview(){
-    AuthorizationScreen(rememberNavController())
+    val fakeDataStoreManager = DataStoreManager(LocalContext.current)
+    AuthorizationScreen(rememberNavController(), fakeDataStoreManager)
 }
-

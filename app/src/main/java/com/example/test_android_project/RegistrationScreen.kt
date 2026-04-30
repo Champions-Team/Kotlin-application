@@ -17,11 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -44,6 +41,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.test_android_project.ui.theme.PinkSystemColor
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
@@ -53,7 +54,7 @@ import okhttp3.Response
 import java.io.IOException
 
 @Composable
-fun RegistrationScreen(navController: NavController) {
+fun RegistrationScreen(navController: NavController, dataStoreManager: DataStoreManager) {
     var usersEmail by remember { mutableStateOf("") }
     var isEmailFieldValid by remember { mutableStateOf(true) }
     var isEmailTouched by remember { mutableStateOf(false) }
@@ -68,6 +69,8 @@ fun RegistrationScreen(navController: NavController) {
 
     val context = LocalContext.current
     val view = LocalView.current
+    val gson = Gson()
+    val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -175,14 +178,38 @@ fun RegistrationScreen(navController: NavController) {
                             override fun onResponse(call: Call, response: Response) {
                                 view.post {
                                     isLoading = false
-                                    if (response.isSuccessful) {
-                                        navController.navigate("listOfOrganizations")
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            "Ошибка сервера: ${response.code}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                    val responseBody = response.body?.string()
+                                    when (response.code) {
+                                        201 -> {
+                                            try {
+                                                val tokenResponse = gson.fromJson(responseBody, TokenResponse::class.java)
+
+                                                coroutineScope.launch {
+                                                    dataStoreManager.saveTokens(
+                                                        accessToken = tokenResponse.access_token,
+                                                        refreshToken = tokenResponse.refresh_token,
+                                                        tokenType = tokenResponse.token_type,
+                                                        userEmail = usersEmail
+                                                    )
+                                                }
+
+                                                Toast.makeText(
+                                                    context,
+                                                    "Аккаунт успешно создан!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                navController.navigate("listOfOrganizations")
+                                            } catch (e: Exception) {
+                                                Toast.makeText(context, "Аккаунт создан, но ошибка сохранения данных", Toast.LENGTH_SHORT).show()
+                                                navController.navigate("listOfOrganizations")
+                                            }
+                                        }
+                                        400 -> {
+                                            Toast.makeText(context, "Неверные данные запроса или пользователь уже существует", Toast.LENGTH_LONG).show()
+                                        }
+                                        else -> {
+                                            Toast.makeText(context, "Ошибка сервера: ${response.code}", Toast.LENGTH_LONG).show()
+                                        }
                                     }
                                     response.close()
                                 }
@@ -206,6 +233,7 @@ fun RegistrationScreen(navController: NavController) {
         }
     }
 }
+
 @Composable
 fun NameField(
     username: String,
@@ -263,6 +291,7 @@ fun NameField(
             .height(55.dp)
     )
 }
+
 @Composable
 fun EmailField(
     email: String,
@@ -321,6 +350,7 @@ fun EmailField(
             .height(55.dp)
     )
 }
+
 @Composable
 fun PasswordField(
     password: String,
@@ -379,8 +409,9 @@ fun PasswordField(
     )
 }
 
-@Composable
 @Preview(showBackground = true)
+@Composable
 private fun RegistrationScreenPreview(){
-    RegistrationScreen(rememberNavController())
+    val fakeDataStoreManager = DataStoreManager(LocalContext.current)
+    RegistrationScreen(rememberNavController(), fakeDataStoreManager)
 }
